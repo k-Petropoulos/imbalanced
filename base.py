@@ -1,3 +1,3 @@
-pip install imbalanced-learn
+!pip install imbalanced-learn
 
 import imblearn
