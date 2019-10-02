@@ -7,7 +7,7 @@ import sys
 import seaborn as sns
 import matplotlib.pyplot as plt
 from sklearn.linear_model import ElasticNetCV
-from sklearn.metrics import roc_curve, auc
+from sklearn.metrics import roc_curve, auc, f1_score, matthews_corrcoef
 from imblearn.under_sampling import RandomUnderSampler
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import GridSearchCV
@@ -42,14 +42,6 @@ def elasticNet (X_train, y_train, X_test):
     y_pred = elasticnet.predict((X_test))
     return y_pred
 
-def computeAUC(y_test, y_pred):
-    fpr = dict()
-    tpr = dict()
-    roc_auc = dict()
-    fpr, tpr, _ = roc_curve(y_test, y_pred)
-    roc_auc = auc(fpr, tpr)
-    return(fpr, tpr, roc_auc)
-
 def show_AUC(fpr, tpr, roc_auc):
     plt.figure()
     lw = 2
@@ -67,9 +59,8 @@ def show_AUC(fpr, tpr, roc_auc):
 def random_under_sampling(X_train, y_train):
     rus = RandomUnderSampler( return_indices=False,random_state=42)
     X_res,y_res= rus.fit_resample(X_train, y_train)
-<<<<<<< HEAD
-    X_resampled=np.c_[ X_res, y_res ]
-    return pd.DataFrame(data=X_resampled, columns=labels)
+    return X_res,y_res 
+
 
 def random_forestGrid(X_train, y_train,X_test):
     RF = RandomForestClassifier(n_estimators='warn',
@@ -97,12 +88,9 @@ def random_forestGrid(X_train, y_train,X_test):
         'min_samples_split': [2, 5, 10],
         'n_estimators': [200, 400, 600, 800, 1000, 1200, 1400, 1600, 1800, 2000]
     }
-
     CV_rf = GridSearchCV(estimator=RF, param_grid=param_grid, cv= 5)
     CV_rf.fit(X_train, y_train)
     return(CV_rf.predict(X_test))
-=======
-    return X_res,y_res
     
 def compute_metrics(y_test, y_pred):
     fpr = dict()
@@ -110,6 +98,6 @@ def compute_metrics(y_test, y_pred):
     roc_auc = dict()
     fpr, tpr, _ = roc_curve(y_test, y_pred)
     roc_auc = auc(fpr, tpr)
-    f1=f1_score(y_true, y_pred, average='macro')  
-    return(fpr, tpr, roc_auc,f1)
->>>>>>> 162644e3bf891fc565bc692c7253561592aa6340
+    f1 = f1_score(y_test, y_pred, average='macro')  
+    MCC = matthews_corrcoef(y_test, y_pred)  
+    return(fpr, tpr, roc_auc, f1, MCC)
