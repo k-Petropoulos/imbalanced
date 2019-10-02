@@ -7,6 +7,7 @@ import sys
 import seaborn as sns
 import matplotlib as plt
 from sklearn.linear_model import ElasticNetCV
+from imblearn.under_sampling import RandomUnderSampler
 
 def getdataset(df):
     X = df.iloc[:,:-1]
@@ -34,3 +35,10 @@ def elasticNet (X_train, y_train, X_test):
     elasticnet.fit(X_train,y_train)
     y_pred = elasticnet.predict((X_test))
     return y_pred
+    
+def random_under_sampling(X_train, X_test, y_train, y_test):
+    label=list(df)
+    rus = RandomUnderSampler( return_indices=False,random_state=42)
+    X_res,y_res= rus.fit_resample(X_train, y_train)
+    X_resampled=np.c_[ X_res, y_res ]
+    return pd.DataFrame(data=X_resampled, columns=label)
