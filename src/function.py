@@ -7,14 +7,21 @@ import sys
 import seaborn as sns
 import matplotlib.pyplot as plt
 from sklearn.linear_model import ElasticNetCV
+<<<<<<< HEAD
 from sklearn.metrics import roc_curve, auc
 
+=======
+from imblearn.under_sampling import RandomUnderSampler
+>>>>>>> 915b2fd35b069450ee92057a3a570f5dfe96b4cb
 
 def getdataset(df):
     X = df.iloc[:,:-1]
     y = df['Class']
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
     return (X_train, X_test, y_train, y_test)
+
+def labels(df):
+    return list(df)
 
 def elasticNet (X_train, y_train, X_test):
     elasticnet = ElasticNetCV(l1_ratio=[.1, .5, .7, .9, .95, .99, 1],
@@ -36,6 +43,7 @@ def elasticNet (X_train, y_train, X_test):
     elasticnet.fit(X_train,y_train)
     y_pred = elasticnet.predict((X_test))
     return y_pred
+<<<<<<< HEAD
 
 def computeAUC(y_test, y_pred):
     fpr = dict()
@@ -59,3 +67,11 @@ def show_AUC(fpr, tpr, roc_auc):
     plt.legend(loc="lower right")
     plt.show()
     return()
+=======
+    
+def random_under_sampling(X_train, y_train,labels):
+    rus = RandomUnderSampler( return_indices=False,random_state=42)
+    X_res,y_res= rus.fit_resample(X_train, y_train)
+    X_resampled=np.c_[ X_res, y_res ]
+    return pd.DataFrame(data=X_resampled, columns=labels)
+>>>>>>> 915b2fd35b069450ee92057a3a570f5dfe96b4cb
