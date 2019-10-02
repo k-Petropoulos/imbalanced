@@ -66,5 +66,4 @@ def show_AUC(fpr, tpr, roc_auc):
 def random_under_sampling(X_train, y_train,labels):
     rus = RandomUnderSampler( return_indices=False,random_state=42)
     X_res,y_res= rus.fit_resample(X_train, y_train)
-    X_resampled=np.c_[ X_res, y_res ]
-    return pd.DataFrame(data=X_resampled, columns=labels)
+    return X_res,y_res
