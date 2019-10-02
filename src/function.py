@@ -63,7 +63,7 @@ def show_AUC(fpr, tpr, roc_auc):
     plt.show()
     return()
     
-def random_under_sampling(X_train, y_train,labels):
+def random_under_sampling(X_train, y_train):
     rus = RandomUnderSampler( return_indices=False,random_state=42)
     X_res,y_res= rus.fit_resample(X_train, y_train)
     return X_res,y_res
