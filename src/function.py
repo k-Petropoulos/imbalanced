@@ -36,7 +36,8 @@ def elasticNet (X_train, y_train, X_test):
     y_pred = elasticnet.predict((X_test))
     return y_pred
     
-def random_under_sampling(X_train, X_test, y_train, y_test):
+def random_under_sampling(df):
+    X_train, X_test, y_train, y_test=getdataset(df)
     label=list(df)
     rus = RandomUnderSampler( return_indices=False,random_state=42)
     X_res,y_res= rus.fit_resample(X_train, y_train)
