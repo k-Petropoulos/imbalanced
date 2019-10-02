@@ -11,6 +11,7 @@ from sklearn.metrics import roc_curve, auc, f1_score, matthews_corrcoef
 from imblearn.under_sampling import RandomUnderSampler
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import GridSearchCV
+from xgboost import XGBClassifier
 
 def getdataset(df):
     X = df.iloc[:,:-1]
@@ -18,8 +19,7 @@ def getdataset(df):
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
     return (X_train, X_test, y_train, y_test)
 
-def labels(df):
-    return list(df)
+
 
 def elasticNet (X_train, y_train, X_test):
     elasticnet = ElasticNetCV(l1_ratio=[.1, .5, .7, .9, .95, .99, 1],
@@ -41,6 +41,17 @@ def elasticNet (X_train, y_train, X_test):
     elasticnet.fit(X_train,y_train)
     y_pred = elasticnet.predict((X_test))
     return y_pred
+
+def compute_metrics(y_test, y_pred):
+    fpr = dict()
+    tpr = dict()
+    roc_auc = dict()
+    fpr, tpr, _ = roc_curve(y_test, y_pred)
+    roc_auc = auc(fpr, tpr)
+    f1 = f1_score(y_test, y_pred, average='macro')  
+    MCC = matthews_corrcoef(y_test, y_pred)  
+    return(fpr, tpr, roc_auc, f1, MCC)
+
 
 def show_AUC(fpr, tpr, roc_auc):
     plt.figure()
@@ -92,12 +103,9 @@ def random_forestGrid(X_train, y_train,X_test):
     CV_rf.fit(X_train, y_train)
     return(CV_rf.predict(X_test))
     
-def compute_metrics(y_test, y_pred):
-    fpr = dict()
-    tpr = dict()
-    roc_auc = dict()
-    fpr, tpr, _ = roc_curve(y_test, y_pred)
-    roc_auc = auc(fpr, tpr)
-    f1 = f1_score(y_test, y_pred, average='macro')  
-    MCC = matthews_corrcoef(y_test, y_pred)  
-    return(fpr, tpr, roc_auc, f1, MCC)
+
+def xgboost_model(X_train, y__train,X_test):
+    model = XGBClassifier()
+    model.fit(X_train, y_train)
+    y_pred = model.predict(X_test)
+    return y_pred
