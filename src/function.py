@@ -64,9 +64,10 @@ def show_AUC(fpr, tpr, roc_auc):
     plt.legend(loc="lower right")
     return(plt.show())
     
-def random_under_sampling(X_train, y_train,labels):
+def random_under_sampling(X_train, y_train):
     rus = RandomUnderSampler( return_indices=False,random_state=42)
     X_res,y_res= rus.fit_resample(X_train, y_train)
+<<<<<<< HEAD
     X_resampled=np.c_[ X_res, y_res ]
     return pd.DataFrame(data=X_resampled, columns=labels)
 
@@ -100,3 +101,15 @@ def random_forestGrid(X_train, y_train,X_test):
     CV_rf = GridSearchCV(estimator=RF, param_grid=param_grid, cv= 5)
     CV_rf.fit(X_train, y_train)
     return(CV_rf.predict(X_test))
+=======
+    return X_res,y_res
+    
+def compute_metrics(y_test, y_pred):
+    fpr = dict()
+    tpr = dict()
+    roc_auc = dict()
+    fpr, tpr, _ = roc_curve(y_test, y_pred)
+    roc_auc = auc(fpr, tpr)
+    f1=f1_score(y_true, y_pred, average='macro')  
+    return(fpr, tpr, roc_auc,f1)
+>>>>>>> 162644e3bf891fc565bc692c7253561592aa6340
