@@ -15,6 +15,9 @@ def getdataset(df):
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
     return (X_train, X_test, y_train, y_test)
 
+def labels(df):
+    return list(df)
+
 def elasticNet (X_train, y_train, X_test):
     elasticnet = ElasticNetCV(l1_ratio=[.1, .5, .7, .9, .95, .99, 1],
                           eps=0.001,
@@ -36,10 +39,8 @@ def elasticNet (X_train, y_train, X_test):
     y_pred = elasticnet.predict((X_test))
     return y_pred
     
-def random_under_sampling(df):
-    X_train, X_test, y_train, y_test=getdataset(df)
-    label=list(df)
+def random_under_sampling(X_train, y_train,labels):
     rus = RandomUnderSampler( return_indices=False,random_state=42)
     X_res,y_res= rus.fit_resample(X_train, y_train)
     X_resampled=np.c_[ X_res, y_res ]
-    return pd.DataFrame(data=X_resampled, columns=label)
+    return pd.DataFrame(data=X_resampled, columns=labels)
