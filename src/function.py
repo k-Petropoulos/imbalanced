@@ -9,6 +9,8 @@ import matplotlib.pyplot as plt
 from sklearn.linear_model import ElasticNetCV
 from sklearn.metrics import roc_curve, auc
 from imblearn.under_sampling import RandomUnderSampler
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import GridSearchCV
 
 def getdataset(df):
     X = df.iloc[:,:-1]
@@ -39,7 +41,7 @@ def elasticNet (X_train, y_train, X_test):
     elasticnet.fit(X_train,y_train)
     y_pred = elasticnet.predict((X_test))
     return y_pred
-    
+
 def computeAUC(y_test, y_pred):
     fpr = dict()
     tpr = dict()
@@ -60,11 +62,41 @@ def show_AUC(fpr, tpr, roc_auc):
     plt.ylabel('True Positive Rate')
     plt.title('Receiver operating characteristic example')
     plt.legend(loc="lower right")
-    plt.show()
-    return()
+    return(plt.show())
     
 def random_under_sampling(X_train, y_train,labels):
     rus = RandomUnderSampler( return_indices=False,random_state=42)
     X_res,y_res= rus.fit_resample(X_train, y_train)
     X_resampled=np.c_[ X_res, y_res ]
     return pd.DataFrame(data=X_resampled, columns=labels)
+
+def random_forestGrid(X_train, y_train,X_test):
+    RF = RandomForestClassifier(n_estimators='warn',
+                        criterion='gini',
+                            max_depth=None,
+                            min_samples_split=2,
+                            min_samples_leaf=1,
+                            min_weight_fraction_leaf=0.0,
+                            max_features='auto',
+                            max_leaf_nodes=None,
+                            min_impurity_decrease=0.0,
+                            min_impurity_split=None,
+                            bootstrap=True,
+                            oob_score=False,
+                            n_jobs=None,
+                            random_state=None,
+                            verbose=0,
+                            warm_start=False,
+                            class_weight=None)
+    param_grid = { 
+        'bootstrap': [True, False],
+        'max_depth': [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, None],
+        'max_features': ['auto', 'sqrt'],
+        'min_samples_leaf': [1, 2, 4],
+        'min_samples_split': [2, 5, 10],
+        'n_estimators': [200, 400, 600, 800, 1000, 1200, 1400, 1600, 1800, 2000]
+    }
+
+    CV_rf = GridSearchCV(estimator=RF, param_grid=param_grid, cv= 5)
+    CV_rf.fit(X_train, y_train)
+    return(CV_rf.predict(X_test))
