@@ -176,6 +176,21 @@ def KMeansUnderSample( X_train, y_train , shrink_factor):
     cc = ClusterCentroids(random_state= 1, sampling_strategy= strategy, voting= 'soft', estimator= KMeans())
     return cc.fit_sample(X_train, y_train)
 
+############# Over sampling #############
+
+def smote_simple(X_train, y_train):
+    X_res, y_res = SMOTE().fit_resample(X_train, y_train)
+    return X_res, y_res
+
+def smote_borderline(X_train, y_train):
+    sm = BorderlineSMOTE(random_state=42)
+    X_res, y_res = sm.fit_resample(X_train, y_train)
+    return X_res, y_res
+
+def adasyn_method(X_train, y_train):
+    ada = ADASYN(random_state=42)
+    X_res, y_res = ada.fit_resample(X_train, y_train)
+    return X_res, y_res
 
 ############# Prediction algorithm #############
 
