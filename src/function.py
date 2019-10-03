@@ -24,8 +24,10 @@ import matplotlib.pyplot as plt
 from sklearn.linear_model import ElasticNetCV
 from sklearn.metrics import roc_curve, auc, f1_score, matthews_corrcoef, average_precision_score, precision_score, recall_score, confusion_matrix, precision_recall_curve
 from imblearn.under_sampling import RandomUnderSampler, NeighbourhoodCleaningRule, CondensedNearestNeighbour, ClusterCentroids
+from imblearn.over_sampling import RandomOverSampler, BorderlineSMOTE, SVMSMOTE
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.cluster import KMeans
+from sklearn.svm import SVC
 from sklearn.model_selection import GridSearchCV
 from xgboost import XGBClassifier
 from inspect import signature
@@ -38,6 +40,9 @@ def getdataset(df):
     y = df['Class']
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
     return (X_train, X_test, y_train, y_test)
+
+
+# ===================================== Visualization =====================================
 
 #Computing and showing metrics
 def compute_metrics(y_test, y_pred):
@@ -136,6 +141,7 @@ def show_AUC(fpr, tpr, roc_auc):
     plt.legend(loc="lower right")
     return(plt.show())
 
+# ===================================== Data modification =====================================
 #Under sampling
 def random_under_sampling(X_train, y_train):
     rus = RandomUnderSampler( return_indices=False,random_state=42)
@@ -171,7 +177,25 @@ def KMeansUnderSample( X_train, y_train , shrink_factor ):
     cc = ClusterCentroids(random_state= 1, sampling_strategy= strategy, voting= 'soft', estimator= KMeans())
     return cc.fit_sample(X_train, y_train)
 
+#Over sampling
+def random_over_sampling(X_train, y_train): RandomOverSampler(random_state= 1).fit_resample(X_train, y_train)
 
+def smote_border(X_train, y_train):
+    smote = BorderlineSMOTE( sampling_strategy='not majority',
+                             random_state= 1,
+                             m_neighbors=5)
+    X_res, y_res = smote.fit_resample(X_train, y_train)
+    return X_res, y_res
+
+def smote_svm(X_train, y_train):
+    smote = SVMSMOTE( sampling_strategy='not majority',
+                      random_state= 1,
+                      m_neighbors=5,
+                      svm_estimator= SVC(kernel= 'linear', gamma= 'scale'))
+    X_res, y_res = smote.fit_resample(X_train, y_train)
+    return X_res, y_res
+
+# ===================================== Models =====================================
 #Prediction algorithm
 
 def random_forest(X_train, y_train, X_test):
