@@ -1,58 +1,53 @@
-import subprocess
-import sys
-
 # Function to install non-existing modules
 def install(package):
     subprocess.call([sys.executable, "-m", "pip", "install", package])
 
 # packages to check if available at host
-pkgs = ['imblearn', 'xgboost']
-for package in pkgs:
-    try:
-        import package
-    except ImportError:
-        install( package )
+# pkgs = ['imblearn', 'xgboost']
+# for package in pkgs:
+#     try:
+#         import package
+#     except ImportError:
+#         install( package )
 
-import imblearn
-from sklearn.model_selection import train_test_split
+import subprocess
 import numpy as np
 import pandas as pd
 import os
 import sys
 import seaborn as sns
 import matplotlib.pyplot as plt
-from sklearn.linear_model import ElasticNetCV
+
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import roc_curve, auc, f1_score, matthews_corrcoef, average_precision_score, precision_score, recall_score, confusion_matrix, precision_recall_curve
-from imblearn.under_sampling import RandomUnderSampler, NeighbourhoodCleaningRule, CondensedNearestNeighbour, ClusterCentroids
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.cluster import KMeans
 from sklearn.model_selection import GridSearchCV
+
 from xgboost import XGBClassifier
+
+from imblearn.under_sampling import RandomUnderSampler, NeighbourhoodCleaningRule, CondensedNearestNeighbour, ClusterCentroids
 from inspect import signature
 
 
-#Load data
+############# Load Data set #############
 def getdataset(df):
     X = df.iloc[:,:-1]
     y = df['Class']
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
     return (X_train, X_test, y_train, y_test)
 
-#Computing and showing metrics
+############# Metrics #############
+    
 def compute_metrics(y_test, y_pred):
-    #fpr = dict()
-    #tpr = dict()
-    #roc_auc = dict()
-    #fpr, tpr, _ = roc_curve(y_test, y_pred)
-    #roc_auc = auc(fpr, tpr)
     f1 = f1_score(y_test, y_pred, average='macro')  
     MCC = matthews_corrcoef(y_test, y_pred) 
     precisionWeakClass = precision_score(y_test, y_pred, pos_label=1, average='binary')
     recallWeakClass = recall_score(y_test, y_pred, pos_label=1, average='binary')
     confMatrix = plot_confusion_matrix( y_test, y_pred, classes= ['not-fraudulent', 'fraudulent'])
-    areaPR = areaUnderPR(y_test, y_pred)
-    return([f1, MCC, precisionWeakClass, recallWeakClass, confMatrix, areaPR])
-
+    average_precision = average_precision_score(y_test, y_pred)
+    return([f1, MCC, precisionWeakClass, recallWeakClass, average_precision])
 
 def plot_confusion_matrix(y_true, y_pred, classes, normalize=False, title=None, cmap=plt.cm.Blues):
     """
@@ -98,9 +93,7 @@ def plot_confusion_matrix(y_true, y_pred, classes, normalize=False, title=None, 
     fig.tight_layout()
     return ax
 
-
-
-def areaUnderPR(y_test, y_pred ):
+def areaUnderPR(y_test, y_pred):
     '''
         Plots the Precision-Recall curve and 
         displays the area under the curve (average precision).
@@ -121,7 +114,19 @@ def areaUnderPR(y_test, y_pred ):
     plt.title('2-class Precision-Recall curve: AP={0:0.2f}'.format( average_precision) )
     return ax
 
+def compute_AUC (y_test, y_pred):
+    fpr = dict()
+    tpr = dict()
+    roc_auc = dict()
+    fpr, tpr, _ = roc_curve(y_test, y_pred)
+    roc_auc = auc(fpr, tpr)
+    return roc_auc
+
 def show_AUC(fpr, tpr, roc_auc):
+    '''
+        Plots the AUC and 
+        displays the area under the curve (average precision).
+    '''
     plt.figure()
     lw = 2
     plt.plot(fpr, tpr, color='darkorange',
@@ -135,7 +140,8 @@ def show_AUC(fpr, tpr, roc_auc):
     plt.legend(loc="lower right")
     return(plt.show())
 
-#Under sampling
+############# Under sampling #############
+
 def random_under_sampling(X_train, y_train):
     rus = RandomUnderSampler( return_indices=False,random_state=42)
     X_res,y_res= rus.fit_resample(X_train, y_train)
@@ -151,7 +157,7 @@ def nearest_neighbours(X_train, y_train):
     X_res, y_res = cnn.fit_resample(X_train, y_train)
     return X_res, y_res
 
-def KMeansUnderSample( X_train, y_train , shrink_factor ): 
+def KMeansUnderSample( X_train, y_train , shrink_factor): 
     '''
         Creates new majority class by clustering the existing. 
         The class is shrunk according to the "shrink_factor" parameter.
@@ -171,7 +177,7 @@ def KMeansUnderSample( X_train, y_train , shrink_factor ):
     return cc.fit_sample(X_train, y_train)
 
 
-#Prediction algorithm
+############# Prediction algorithm #############
 
 def random_forest(X_train, y_train, X_test):
     RF = RandomForestClassifier(n_estimators=50,
@@ -198,18 +204,12 @@ def random_forest(X_train, y_train, X_test):
 
 def elasticNet(X_train, y_train, X_test):
     elasticnet = LogisticRegression(penalty='elasticnet',
-                                    multiclass='ovr',
-                                    solver='saga')
-
+                                    multi_class='ovr',
+                                    solver='saga',
+                                   l1_ratio=0.5)
     elasticnet.fit(X_train,y_train)
     y_pred = elasticnet.predict((X_test))
-
-    # for y in y_pred:
-    #     if y <= 0.5:
-    #         y = 0
-    #     else:
-    #         y = 1
-    return y_pred   
+    return y_pred  
 
 def xgboost_model(X_train, y_train, X_test):
     model = XGBClassifier(max_depth=3, 
