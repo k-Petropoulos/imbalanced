@@ -89,17 +89,21 @@ def random_forestGrid(X_train, y_train,X_test):
                             verbose=0,
                             warm_start=False,
                             class_weight=None)
-    param_grid = { 
-        'bootstrap': [True, False],
-        'max_depth': [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, None],
-        'max_features': ['auto', 'sqrt'],
-        'min_samples_leaf': [1, 2, 4],
-        'min_samples_split': [2, 5, 10],
-        'n_estimators': [200, 400, 600, 800, 1000, 1200, 1400, 1600, 1800, 2000]
-    }
-    CV_rf = GridSearchCV(estimator=RF, param_grid=param_grid, cv= 5)
-    CV_rf.fit(X_train, y_train)
-    return(CV_rf.predict(X_test))
+    # param_grid = { 
+    #     'bootstrap': [True, False],
+    #     'max_depth': [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, None],
+    #     'max_features': ['auto', 'sqrt'],
+    #     'min_samples_leaf': [1, 2, 4],
+    #     'min_samples_split': [2, 5, 10],
+    #     'n_estimators': [200, 400, 600, 800, 1000, 1200, 1400, 1600, 1800, 2000]
+    # }
+    #CV_rf = GridSearchCV(estimator=RF, param_grid=param_grid, cv= 5)
+    #CV_rf.fit(X_train, y_train)
+    #y_pred = CV_rf.predict(X_test)
+    RF.fit()
+    RF.fit(X_train, y_train)
+    y_pred = RF.predict(X_test)
+    return(y_pred)
     
 
 def xgboost_model(X_train, y__train,X_test):
