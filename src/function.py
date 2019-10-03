@@ -53,30 +53,27 @@ def compute_metrics(y_test, y_pred):
 
 def plot_confusion_matrix(y_true, y_pred, classes, normalize=False, title=None, cmap=plt.cm.Blues):
     """
-    This function computes and plots the confusion matrix.
-    Normalization to display percentages can be applied by
-    setting `normalize=True`. Based on sklearn example.
+    This function prints and plots the confusion matrix.
+    Normalization can be applied by setting `normalize=True`.
     """
     if not title:
         if normalize:
             title = 'Normalized confusion matrix'
         else:
-            title = 'Confusion matrix, without normalization'
+            title = 'Confusion matrix'
     # Compute confusion matrix
     cm = confusion_matrix(y_true, y_pred)
     if normalize:
         cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
 
 
-    fig, ax = plt.subplots(figsize=(15,6))
+    fig, ax = plt.subplots(figsize=(7,5))
     im = ax.imshow(cm, interpolation='nearest', cmap=cmap)
     ax.figure.colorbar(im, ax=ax)
-    # We want to show all ticks...
     ax.set(xticks=np.arange(cm.shape[1]),
-           yticks=np.arange(cm.shape[0]),
-           # ... and label them with the respective list entries
+           yticks=np.arange(cm.shape[1]),
            xticklabels=classes, yticklabels=classes,
-           title=title,
+#            title=title,
            ylabel='True label',
            xlabel='Predicted label')
 
@@ -87,11 +84,10 @@ def plot_confusion_matrix(y_true, y_pred, classes, normalize=False, title=None, 
     # Loop over data dimensions and create text annotations.
     fmt = '.2f' if normalize else 'd'
     thresh = cm.max() / 2.
-    for i in range(cm.shape[0]):
-        for j in range(cm.shape[1]):
-            ax.text(j, i, format(cm[i, j], fmt),
-                    ha="center", va="center",
-                    color="white" if cm[i, j] > thresh else "black")
+    for i in range(2):
+        for j in range(2):
+            ax.text(j, i, s= format(cm[i,j], fmt), va="bottom", ha="center", fontsize=18)
+#                     color="white" if cm[i, j] > thresh else "black")
     fig.tight_layout()
     return ax
 
@@ -197,7 +193,7 @@ def adasyn_method(X_train, y_train):
 ############# Prediction algorithm #############
 
 def random_forest(X_train, y_train, X_test):
-    RF = RandomForestClassifier(n_estimators=50,
+    RF = RandomForestClassifier(n_estimators=100,
                         criterion='gini',
                             max_depth=4,
                             min_samples_split=2,
@@ -223,7 +219,8 @@ def elasticNet(X_train, y_train, X_test):
     elasticnet = LogisticRegression(penalty='elasticnet',
                                     multi_class='ovr',
                                     solver='saga',
-                                   l1_ratio=0.5)
+                                   l1_ratio=0.5,
+                                   max_iter= 5000) # raised a lot; would not converge
     elasticnet.fit(X_train,y_train)
     y_pred = elasticnet.predict((X_test))
     return y_pred  

@@ -31,7 +31,7 @@ def master(df,method=None,shrink=None):
     print('RandomForest begin')
     y_pred_RF = function.random_forest(X_train, y_train, X_test)
     print('Xgboost begin')
-    y_pred_XgBoost = function.xgboost_model(X_train, y_train, X_test)
+    y_pred_XgBoost = function.xgboost_model(X_train, y_train, X_test.values) # changed X_test-> X_test.values as it threw error
 
     print('ElasticNet metrics')
     metrics_E = function.compute_metrics(y_test, y_pred_E)
@@ -42,6 +42,6 @@ def master(df,method=None,shrink=None):
 
     print('Create final dataframe')
 
-    # final_df = pd.DataFrame(np.array(metrics_RF,metrics_XgBoost),
-    #                         columns=['F1-Score', 'MCC', 'Precision of the weak class', 'Recall of the weak class'])
+#     final_df = pd.DataFrame(np.array(metrics_RF,metrics_XgBoost),
+#                             columns=['F1-Score', 'MCC', 'Precision of the weak class', 'Recall of the weak class'])
     return ([metrics_E,metrics_RF,metrics_XgBoost])
