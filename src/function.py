@@ -22,7 +22,11 @@ import sys
 import seaborn as sns
 import matplotlib.pyplot as plt
 from sklearn.linear_model import ElasticNetCV
+<<<<<<< HEAD
+from sklearn.metrics import roc_curve, auc, f1_score, matthews_corrcoef, average_precision_score, precision_score, recall_score
+=======
 from sklearn.metrics import roc_curve, auc, f1_score, matthews_corrcoef, average_precision_score, precision_score, recall_score, confusion_matrix, precision_recall_curve
+>>>>>>> c2deb8ded8e777df9f7d5e6d706d99015b63e27e
 from imblearn.under_sampling import RandomUnderSampler, NeighbourhoodCleaningRule, CondensedNearestNeighbour, ClusterCentroids
 from imblearn.over_sampling import RandomOverSampler, BorderlineSMOTE, SVMSMOTE
 from sklearn.ensemble import RandomForestClassifier
@@ -30,8 +34,12 @@ from sklearn.cluster import KMeans
 from sklearn.svm import SVC
 from sklearn.model_selection import GridSearchCV
 from xgboost import XGBClassifier
+<<<<<<< HEAD
+from sklearn.cluster import KMeans
+=======
 from inspect import signature
 
+>>>>>>> c2deb8ded8e777df9f7d5e6d706d99015b63e27e
 
 
 #Load data
@@ -251,17 +259,18 @@ def elasticNet(X_train, y_train, X_test):
                           selection='cyclic')
     elasticnet.fit(X_train,y_train)
     y_pred = elasticnet.predict((X_test))
-    for y in y_pred:
-        if y <= 0.5:
-            y = 0
-        else:
-            y = 1
+
+    # for y in y_pred:
+    #     if y <= 0.5:
+    #         y = 0
+    #     else:
+    #         y = 1
     return y_pred   
 
 def xgboost_model(X_train, y_train, X_test):
     model = XGBClassifier(max_depth=3, 
                           learning_rate=0.1, 
-                          n_estimators=100, 
+                          n_estimators=50, 
                           verbosity=1, 
                           silent=None, 
                           objective='binary:logistic', 
@@ -286,3 +295,22 @@ def xgboost_model(X_train, y_train, X_test):
     model.fit(X_train, y_train)
     y_pred = model.predict(X_test)
     return y_pred
+<<<<<<< HEAD
+
+# def KMeansUnderSample(X_train, y_train , shrink ): 
+#     '''
+#         Creates new majority class by clustering the existing. 
+#         The class is shrunk according to the "shrink" parameter.
+# 	Returns X, y after subsampling.
+#     '''
+#     if type(y_train) != pd.core.series.Series: # type check to be abe to us VALUE_COUNTS
+#         y_train = pd.Series( y_train)
+
+#     Nmin = y_train.value_counts()[1] # minority class count
+#     NmajR = y_train.value_counts()[0]/ shrink # NEW majority class count
+#     strategy = Nmin/NmajR
+#     # under-sample only the majority class. substitute with the centorids
+#     cc = ClusterCentroids(random_state= 1, sampling_strategy= strategy, voting= 'soft', estimator= KMeans())
+#     return cc.fit_sample(X_train, y_train)
+=======
+>>>>>>> c2deb8ded8e777df9f7d5e6d706d99015b63e27e
