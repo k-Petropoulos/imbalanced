@@ -5,7 +5,8 @@ import function
 def master(df,method=None,shrink=None):
 
     X_train, X_test, y_train, y_test = function.getdataset(df)
-
+    
+    #under sampling
     if (method=='random'):
         X_train,y_train = function.random_under_sampling(X_train,y_train)
     elif(method=='NCR'):
@@ -14,6 +15,14 @@ def master(df,method=None,shrink=None):
         X_train,y_train = function.nearest_neighbours(X_train, y_train)
     elif(method=='ClusterCentroids'):
         X_train,y_train = function.KMeansUnderSample(X_train, y_train, shrink)
+    
+    #over sampling
+    elif(method=='SMOTE'):
+        X_train,y_train = function.smote_simple(X_train, y_train)
+    elif(method=='SMOTE_border'):
+        X_train,y_train = function.smote_borderline(X_train, y_train)
+    elif(method=='ADASYN'):
+        X_train,y_train = function.adasyn_method(X_train, y_train)
     else:
         pass
     
