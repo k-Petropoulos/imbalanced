@@ -8,7 +8,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 from sklearn.linear_model import ElasticNetCV
 from sklearn.metrics import roc_curve, auc, f1_score, matthews_corrcoef, average_precision_score, precision_score, recall_score
-from imblearn.under_sampling import RandomUnderSampler, NeighbourhoodCleaningRule,CondensedNearestNeighbour
+from imblearn.under_sampling import RandomUnderSampler, NeighbourhoodCleaningRule, CondensedNearestNeighbour
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import GridSearchCV
 from xgboost import XGBClassifier
@@ -23,16 +23,16 @@ def getdataset(df):
 
 #Computing and showing metrics
 def compute_metrics(y_test, y_pred):
-    fpr = dict()
-    tpr = dict()
-    roc_auc = dict()
-    fpr, tpr, _ = roc_curve(y_test, y_pred)
-    roc_auc = auc(fpr, tpr)
+    #fpr = dict()
+    #tpr = dict()
+    #roc_auc = dict()
+    #fpr, tpr, _ = roc_curve(y_test, y_pred)
+    #roc_auc = auc(fpr, tpr)
     f1 = f1_score(y_test, y_pred, average='macro')  
     MCC = matthews_corrcoef(y_test, y_pred) 
     precisionWeakClass = precision_score(y_test, y_pred, pos_label=1, average='binary')
     recallWeakClass = recall_score(y_test, y_pred, pos_label=1, average='binary')
-    return([roc_auc, f1, MCC, precisionWeakClass, recallWeakClass])
+    return([f1, MCC, precisionWeakClass, recallWeakClass])
 
 
 def show_AUC(fpr, tpr, roc_auc):
@@ -61,16 +61,16 @@ def neighbourhood_clear_rule(X_train, y_train):
     return X_res, y_res
     
 def nearest_neighbours(X_train, y_train):
-    cnn = CondensedNekeparestNeighbour(random_state=42)
+    cnn = CondensedNearestNeighbour(random_state=42)
     X_res, y_res = cnn.fit_resample(X_train, y_train)
     return X_res, y_res
 
 #Prediction algorithm
 
-def random_forest(X_train, y_train,X_test):
-    RF = RandomForestClassifier(n_estimators='warn',
+def random_forest(X_train, y_train, X_test):
+    RF = RandomForestClassifier(n_estimators=50,
                         criterion='gini',
-                            max_depth=None,
+                            max_depth=4,
                             min_samples_split=2,
                             min_samples_leaf=1,
                             min_weight_fraction_leaf=0.0,
@@ -80,7 +80,7 @@ def random_forest(X_train, y_train,X_test):
                             min_impurity_split=None,
                             bootstrap=True,
                             oob_score=False,
-                            n_jobs=None,
+                            n_jobs=-1,
                             random_state=None,
                             verbose=0,
                             warm_start=False,
@@ -96,12 +96,12 @@ def random_forest(X_train, y_train,X_test):
     #CV_rf = GridSearchCV(estimator=RF, param_grid=param_grid, cv= 5)
     #CV_rf.fit(X_train, y_train)
     #y_pred = CV_rf.predict(X_test)
-    RF.fit()
+
     RF.fit(X_train, y_train)
     y_pred = RF.predict(X_test)
     return(y_pred)
 
-def elasticNet (X_train, y_train, X_test):
+def elasticNet(X_train, y_train, X_test):
     elasticnet = ElasticNetCV(l1_ratio=[.1, .5, .7, .9, .95, .99, 1],
                           eps=0.001,
                           n_alphas=100,
@@ -114,12 +114,17 @@ def elasticNet (X_train, y_train, X_test):
                           cv=4,
                           copy_X=True,
                           verbose=0,
-                          n_jobs=None,
+                          n_jobs=-1,
                           positive=False,
                           random_state=None,
                           selection='cyclic')
     elasticnet.fit(X_train,y_train)
     y_pred = elasticnet.predict((X_test))
+    for y in y_pred:
+        if y <= 0.5:
+            y = 0
+        else:
+            y = 1
     return y_pred   
 
 def xgboost_model(X_train, y_train, X_test):
