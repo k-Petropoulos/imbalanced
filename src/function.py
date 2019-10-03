@@ -8,7 +8,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 from sklearn.linear_model import ElasticNetCV
 from sklearn.metrics import roc_curve, auc, f1_score, matthews_corrcoef, average_precision_score, precision_score, recall_score
-from imblearn.under_sampling import RandomUnderSampler, NeighbourhoodCleaningRule
+from imblearn.under_sampling import RandomUnderSampler, NeighbourhoodCleaningRule,CondensedNearestNeighbour
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import GridSearchCV
 from xgboost import XGBClassifier
