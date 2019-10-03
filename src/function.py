@@ -19,8 +19,6 @@ def getdataset(df):
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
     return (X_train, X_test, y_train, y_test)
 
-
-
 def elasticNet (X_train, y_train, X_test):
     elasticnet = ElasticNetCV(l1_ratio=[.1, .5, .7, .9, .95, .99, 1],
                           eps=0.001,
