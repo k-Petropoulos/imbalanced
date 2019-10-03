@@ -2,7 +2,7 @@ import function
 
 #Method can be 'random' or 'NCR' standing for neighborhood cleaning rule, or CNN condensed clear rules or Kmeans
 
-def master(df,method=None):
+def master(df,method=None,shrink=None):
 
     X_train, X_test, y_train, y_test = function.getdataset(df)
 
@@ -13,7 +13,7 @@ def master(df,method=None):
     elif(method=='CNN'):
         X_train,y_train = function.nearest_neighbours(X_train, y_train)
     elif(method=='ClusterCentroids'):
-        X_train,y_train = function.KMeansUnderSample(X_train, y_train, 0.3 )
+        X_train,y_train = function.KMeansUnderSample(X_train, y_train, shrink)
     else:
         pass
     
