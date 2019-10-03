@@ -13,33 +13,15 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import GridSearchCV
 from xgboost import XGBClassifier
 
+
+#Load data
 def getdataset(df):
     X = df.iloc[:,:-1]
     y = df['Class']
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
     return (X_train, X_test, y_train, y_test)
 
-def elasticNet (X_train, y_train, X_test):
-    elasticnet = ElasticNetCV(l1_ratio=[.1, .5, .7, .9, .95, .99, 1],
-                          eps=0.001,
-                          n_alphas=100,
-                          alphas=None,
-                          fit_intercept=True,
-                          normalize=False,
-                          precompute='auto',
-                          max_iter=1000,
-                          tol=0.0001,
-                          cv=4,
-                          copy_X=True,
-                          verbose=0,
-                          n_jobs=None,
-                          positive=False,
-                          random_state=None,
-                          selection='cyclic')
-    elasticnet.fit(X_train,y_train)
-    y_pred = elasticnet.predict((X_test))
-    return y_pred
-
+#Computing and showing metrics
 def compute_metrics(y_test, y_pred):
     fpr = dict()
     tpr = dict()
@@ -66,14 +48,24 @@ def show_AUC(fpr, tpr, roc_auc):
     plt.title('Receiver operating characteristic example')
     plt.legend(loc="lower right")
     return(plt.show())
-    
+
+#Under sampling
 def random_under_sampling(X_train, y_train):
     rus = RandomUnderSampler( return_indices=False,random_state=42)
     X_res,y_res= rus.fit_resample(X_train, y_train)
     return X_res,y_res
 
+def neighbourhood_clear_rule(X_train, y_train):
+    ncr = NeighbourhoodCleaningRule()
+    X_res, y_res = ncr.fit_resample(X_train, y_train)
+    return X_res, y_res
 
+<<<<<<< HEAD
 def random_forest(X_train, y_train,X_test):
+=======
+#Algorithm prediction
+def random_forestGrid(X_train, y_train,X_test):
+>>>>>>> 789d3f71a799ba7be31e489a4d0816dd010ab868
     RF = RandomForestClassifier(n_estimators='warn',
                         criterion='gini',
                             max_depth=None,
@@ -106,7 +98,27 @@ def random_forest(X_train, y_train,X_test):
     RF.fit(X_train, y_train)
     y_pred = RF.predict(X_test)
     return(y_pred)
-    
+
+def elasticNet (X_train, y_train, X_test):
+    elasticnet = ElasticNetCV(l1_ratio=[.1, .5, .7, .9, .95, .99, 1],
+                          eps=0.001,
+                          n_alphas=100,
+                          alphas=None,
+                          fit_intercept=True,
+                          normalize=False,
+                          precompute='auto',
+                          max_iter=1000,
+                          tol=0.0001,
+                          cv=4,
+                          copy_X=True,
+                          verbose=0,
+                          n_jobs=None,
+                          positive=False,
+                          random_state=None,
+                          selection='cyclic')
+    elasticnet.fit(X_train,y_train)
+    y_pred = elasticnet.predict((X_test))
+    return y_pred   
 
 def xgboost_model(X_train, y_train, X_test):
     model = XGBClassifier(max_depth=3, 
