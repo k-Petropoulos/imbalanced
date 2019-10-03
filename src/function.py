@@ -59,6 +59,13 @@ def neighbourhood_clear_rule(X_train, y_train):
     ncr = NeighbourhoodCleaningRule()
     X_res, y_res = ncr.fit_resample(X_train, y_train)
     return X_res, y_res
+    
+def nearest_neighbours(X_train, y_train):
+    cnn = CondensedNekeparestNeighbour(random_state=42)
+    X_res, y_res = cnn.fit_resample(X_train, y_train)
+    return X_res, y_res
+
+#Prediction algorithm
 
 def random_forest(X_train, y_train,X_test):
     RF = RandomForestClassifier(n_estimators='warn',
