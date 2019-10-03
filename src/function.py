@@ -22,22 +22,13 @@ import sys
 import seaborn as sns
 import matplotlib.pyplot as plt
 from sklearn.linear_model import ElasticNetCV
-<<<<<<< HEAD
-from sklearn.metrics import roc_curve, auc, f1_score, matthews_corrcoef, average_precision_score, precision_score, recall_score
-=======
 from sklearn.metrics import roc_curve, auc, f1_score, matthews_corrcoef, average_precision_score, precision_score, recall_score, confusion_matrix, precision_recall_curve
->>>>>>> c2deb8ded8e777df9f7d5e6d706d99015b63e27e
 from imblearn.under_sampling import RandomUnderSampler, NeighbourhoodCleaningRule, CondensedNearestNeighbour, ClusterCentroids
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.cluster import KMeans
 from sklearn.model_selection import GridSearchCV
 from xgboost import XGBClassifier
-<<<<<<< HEAD
-from sklearn.cluster import KMeans
-=======
 from inspect import signature
-
->>>>>>> c2deb8ded8e777df9f7d5e6d706d99015b63e27e
 
 
 #Load data
@@ -200,39 +191,16 @@ def random_forest(X_train, y_train, X_test):
                             verbose=0,
                             warm_start=False,
                             class_weight=None)
-    # param_grid = { 
-    #     'bootstrap': [True, False],
-    #     'max_depth': [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, None],
-    #     'max_features': ['auto', 'sqrt'],
-    #     'min_samples_leaf': [1, 2, 4],
-    #     'min_samples_split': [2, 5, 10],
-    #     'n_estimators': [200, 400, 600, 800, 1000, 1200, 1400, 1600, 1800, 2000]
-    # }
-    #CV_rf = GridSearchCV(estimator=RF, param_grid=param_grid, cv= 5)
-    #CV_rf.fit(X_train, y_train)
-    #y_pred = CV_rf.predict(X_test)
 
     RF.fit(X_train, y_train)
     y_pred = RF.predict(X_test)
     return(y_pred)
 
 def elasticNet(X_train, y_train, X_test):
-    elasticnet = ElasticNetCV(l1_ratio=[.1, .5, .7, .9, .95, .99, 1],
-                          eps=0.001,
-                          n_alphas=100,
-                          alphas=None,
-                          fit_intercept=True,
-                          normalize=False,
-                          precompute='auto',
-                          max_iter=1000,
-                          tol=0.0001,
-                          cv=4,
-                          copy_X=True,
-                          verbose=0,
-                          n_jobs=-1,
-                          positive=False,
-                          random_state=None,
-                          selection='cyclic')
+    elasticnet = LogisticRegression(penalty='elasticnet',
+                                    multiclass='ovr',
+                                    solver='saga')
+
     elasticnet.fit(X_train,y_train)
     y_pred = elasticnet.predict((X_test))
 
@@ -271,22 +239,3 @@ def xgboost_model(X_train, y_train, X_test):
     model.fit(X_train, y_train)
     y_pred = model.predict(X_test)
     return y_pred
-<<<<<<< HEAD
-
-# def KMeansUnderSample(X_train, y_train , shrink ): 
-#     '''
-#         Creates new majority class by clustering the existing. 
-#         The class is shrunk according to the "shrink" parameter.
-# 	Returns X, y after subsampling.
-#     '''
-#     if type(y_train) != pd.core.series.Series: # type check to be abe to us VALUE_COUNTS
-#         y_train = pd.Series( y_train)
-
-#     Nmin = y_train.value_counts()[1] # minority class count
-#     NmajR = y_train.value_counts()[0]/ shrink # NEW majority class count
-#     strategy = Nmin/NmajR
-#     # under-sample only the majority class. substitute with the centorids
-#     cc = ClusterCentroids(random_state= 1, sampling_strategy= strategy, voting= 'soft', estimator= KMeans())
-#     return cc.fit_sample(X_train, y_train)
-=======
->>>>>>> c2deb8ded8e777df9f7d5e6d706d99015b63e27e
