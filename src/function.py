@@ -50,12 +50,12 @@ def compute_metrics(y_test, y_pred):
     MCC = matthews_corrcoef(y_test, y_pred) 
     precisionWeakClass = precision_score(y_test, y_pred, pos_label=1, average='binary')
     recallWeakClass = recall_score(y_test, y_pred, pos_label=1, average='binary')
-    confMatrix = confusion_matrix( y_test, y_pred, classes= ['not-fraudulent', 'fraudulent'])
+    confMatrix = plot_confusion_matrix( y_test, y_pred, classes= ['not-fraudulent', 'fraudulent'])
     areaPR = areaUnderPR(y_test, y_pred)
     return([f1, MCC, precisionWeakClass, recallWeakClass, confMatrix, areaPR])
 
 
-def confusion_matrix(y_true, y_pred, classes, normalize=False, title=None, cmap=plt.cm.Blues):
+def plot_confusion_matrix(y_true, y_pred, classes, normalize=False, title=None, cmap=plt.cm.Blues):
     """
     This function computes and plots the confusion matrix.
     Normalization to display percentages can be applied by
