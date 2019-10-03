@@ -29,6 +29,7 @@ from xgboost import XGBClassifier
 
 from imblearn.under_sampling import RandomUnderSampler, NeighbourhoodCleaningRule, CondensedNearestNeighbour, ClusterCentroids
 from inspect import signature
+from imblearn.over_sampling import SMOTE,BorderlineSMOTE, ADASYN
 
 
 ############# Load Data set #############
