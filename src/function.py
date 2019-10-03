@@ -1,3 +1,18 @@
+import subprocess
+import sys
+
+# Function to install non-existing modules
+def install(package):
+    subprocess.call([sys.executable, "-m", "pip", "install", package])
+
+# packages to check if available at host
+pkgs = ['imblearn', 'xgboost']
+for package in pkgs:
+    try:
+        import package
+    except ImportError:
+        install( package )
+
 import imblearn
 from sklearn.model_selection import train_test_split
 import numpy as np
@@ -7,11 +22,14 @@ import sys
 import seaborn as sns
 import matplotlib.pyplot as plt
 from sklearn.linear_model import ElasticNetCV
-from sklearn.metrics import roc_curve, auc, f1_score, matthews_corrcoef, average_precision_score, precision_score, recall_score
-from imblearn.under_sampling import RandomUnderSampler, NeighbourhoodCleaningRule, CondensedNearestNeighbour
+from sklearn.metrics import roc_curve, auc, f1_score, matthews_corrcoef, average_precision_score, precision_score, recall_score, confusion_matrix, precision_recall_curve
+from imblearn.under_sampling import RandomUnderSampler, NeighbourhoodCleaningRule, CondensedNearestNeighbour, ClusterCentroids
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.cluster import KMeans
 from sklearn.model_selection import GridSearchCV
 from xgboost import XGBClassifier
+from inspect import signature
+
 
 
 #Load data
@@ -32,8 +50,77 @@ def compute_metrics(y_test, y_pred):
     MCC = matthews_corrcoef(y_test, y_pred) 
     precisionWeakClass = precision_score(y_test, y_pred, pos_label=1, average='binary')
     recallWeakClass = recall_score(y_test, y_pred, pos_label=1, average='binary')
-    return([f1, MCC, precisionWeakClass, recallWeakClass])
+    confMatrix = confusion_matrix( y_test, y_pred, classes= ['not-fraudulent', 'fraudulent'])
+    areaPR = areaUnderPR(y_test, y_pred)
+    return([f1, MCC, precisionWeakClass, recallWeakClass, confMatrix, areaPR])
 
+
+def confusion_matrix(y_true, y_pred, classes, normalize=False, title=None, cmap=plt.cm.Blues):
+    """
+    This function computes and plots the confusion matrix.
+    Normalization to display percentages can be applied by
+    setting `normalize=True`. Based on sklearn example.
+    """
+    if not title:
+        if normalize:
+            title = 'Normalized confusion matrix'
+        else:
+            title = 'Confusion matrix, without normalization'
+    # Compute confusion matrix
+    cm = confusion_matrix(y_true, y_pred)
+    if normalize:
+        cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
+
+
+    fig, ax = plt.subplots(figsize=(15,6))
+    im = ax.imshow(cm, interpolation='nearest', cmap=cmap)
+    ax.figure.colorbar(im, ax=ax)
+    # We want to show all ticks...
+    ax.set(xticks=np.arange(cm.shape[1]),
+           yticks=np.arange(cm.shape[0]),
+           # ... and label them with the respective list entries
+           xticklabels=classes, yticklabels=classes,
+           title=title,
+           ylabel='True label',
+           xlabel='Predicted label')
+
+    # Rotate the tick labels and set their alignment.
+    plt.setp(ax.get_xticklabels(), rotation=45, ha="right",
+             rotation_mode="anchor")
+
+    # Loop over data dimensions and create text annotations.
+    fmt = '.2f' if normalize else 'd'
+    thresh = cm.max() / 2.
+    for i in range(cm.shape[0]):
+        for j in range(cm.shape[1]):
+            ax.text(j, i, format(cm[i, j], fmt),
+                    ha="center", va="center",
+                    color="white" if cm[i, j] > thresh else "black")
+    fig.tight_layout()
+    return ax
+
+
+
+def areaUnderPR(y_test, y_pred ):
+    '''
+        Plots the Precision-Recall curve and 
+        displays the area under the curve (average precision).
+    '''
+    average_precision = average_precision_score(y_test, y_pred)
+    precision, recall, _ = precision_recall_curve(y_test, y_pred)
+
+    step_kwargs = ({'step': 'post'}
+                   if 'step' in signature(plt.fill_between).parameters
+                   else {})
+    ax = plt.step(recall, precision, color='b', alpha=0.2, where='post')
+    plt.fill_between(recall, precision, alpha=0.2, color='b', **step_kwargs)
+
+    plt.xlabel('Recall')
+    plt.ylabel('Precision')
+    plt.ylim([0.0, 1.05])
+    plt.xlim([0.0, 1.0])
+    plt.title('2-class Precision-Recall curve: AP={0:0.2f}'.format( average_precision) )
+    return ax
 
 def show_AUC(fpr, tpr, roc_auc):
     plt.figure()
@@ -64,6 +151,26 @@ def nearest_neighbours(X_train, y_train):
     cnn = CondensedNearestNeighbour(random_state=42)
     X_res, y_res = cnn.fit_resample(X_train, y_train)
     return X_res, y_res
+
+def KMeansUnderSample( X_train, y_train , shrink_factor ): 
+    '''
+        Creates new majority class by clustering the existing. 
+        The class is shrunk according to the "shrink_factor" parameter.
+        Under-sample only the majority class and substitute values 
+        with the cluster centorids. Returns X, y after subsampling.
+    '''
+    # check type to be able to use VALUE_COUNTS
+    if type(y_train) != pd.core.series.Series: 
+        y_train = pd.Series( y_train )
+    # minority class count
+    Nmin = y_train.value_counts()[1]
+    # majority class count (to be created)
+    NmajR = y_train.value_counts()[0]/ shrink_factor
+    strategy = Nmin/NmajR
+    
+    cc = ClusterCentroids(random_state= 1, sampling_strategy= strategy, voting= 'soft', estimator= KMeans())
+    return cc.fit_sample(X_train, y_train)
+
 
 #Prediction algorithm
 

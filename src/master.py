@@ -16,6 +16,8 @@ def master(df,method=None):
         X_train,y_train = function.nearest_neighbours(X_train, y_train)
     #elif(method=='CondensedNN'):
         #X_train,y_train = function.neighbourhood_clear_rule(X_train, y_train)
+    elif(method=='ClusterCentroids'):
+        X_train,y_train = function.KMeansUnderSample(X_train, y_train)
     else:
         pass
     
