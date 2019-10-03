@@ -8,7 +8,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 from sklearn.linear_model import ElasticNetCV
 from sklearn.metrics import roc_curve, auc, f1_score, matthews_corrcoef, average_precision_score, precision_score, recall_score
-from imblearn.under_sampling import RandomUnderSampler
+from imblearn.under_sampling import RandomUnderSampler, NeighbourhoodCleaningRule
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import GridSearchCV
 from xgboost import XGBClassifier
@@ -32,7 +32,7 @@ def compute_metrics(y_test, y_pred):
     MCC = matthews_corrcoef(y_test, y_pred) 
     precisionWeakClass = precision_score(y_test, y_pred, pos_label=1, average='binary')
     recallWeakClass = recall_score(y_test, y_pred, pos_label=1, average='binary')
-    return(roc_auc, f1, MCC, precisionWeakClass, recallWeakClass)
+    return([roc_auc, f1, MCC, precisionWeakClass, recallWeakClass])
 
 
 def show_AUC(fpr, tpr, roc_auc):
@@ -60,12 +60,7 @@ def neighbourhood_clear_rule(X_train, y_train):
     X_res, y_res = ncr.fit_resample(X_train, y_train)
     return X_res, y_res
 
-<<<<<<< HEAD
 def random_forest(X_train, y_train,X_test):
-=======
-#Algorithm prediction
-def random_forestGrid(X_train, y_train,X_test):
->>>>>>> 789d3f71a799ba7be31e489a4d0816dd010ab868
     RF = RandomForestClassifier(n_estimators='warn',
                         criterion='gini',
                             max_depth=None,
