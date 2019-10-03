@@ -7,7 +7,7 @@ import sys
 import seaborn as sns
 import matplotlib.pyplot as plt
 from sklearn.linear_model import ElasticNetCV
-from sklearn.metrics import roc_curve, auc, f1_score, matthews_corrcoef
+from sklearn.metrics import roc_curve, auc, f1_score, matthews_corrcoef, average_precision_score, precision_score, recall_score
 from imblearn.under_sampling import RandomUnderSampler
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import GridSearchCV
@@ -47,8 +47,10 @@ def compute_metrics(y_test, y_pred):
     fpr, tpr, _ = roc_curve(y_test, y_pred)
     roc_auc = auc(fpr, tpr)
     f1 = f1_score(y_test, y_pred, average='macro')  
-    MCC = matthews_corrcoef(y_test, y_pred)  
-    return(fpr, tpr, roc_auc, f1, MCC)
+    MCC = matthews_corrcoef(y_test, y_pred) 
+    precisionWeakClass = precision_score(y_test, y_pred, pos_label=1, average='binary')
+    recallWeakClass = recall_score(y_test, y_pred, pos_label=1, average='binary')
+    return(roc_auc, f1, MCC, precisionWeakClass, recallWeakClass)
 
 
 def show_AUC(fpr, tpr, roc_auc):
@@ -68,10 +70,10 @@ def show_AUC(fpr, tpr, roc_auc):
 def random_under_sampling(X_train, y_train):
     rus = RandomUnderSampler( return_indices=False,random_state=42)
     X_res,y_res= rus.fit_resample(X_train, y_train)
-    return X_res,y_res 
+    return X_res,y_res
 
 
-def random_forestGrid(X_train, y_train,X_test):
+def random_forest(X_train, y_train,X_test):
     RF = RandomForestClassifier(n_estimators='warn',
                         criterion='gini',
                             max_depth=None,
@@ -106,7 +108,7 @@ def random_forestGrid(X_train, y_train,X_test):
     return(y_pred)
     
 
-def xgboost_model(X_train, y__train,X_test):
+def xgboost_model(X_train, y_train, X_test):
     model = XGBClassifier(max_depth=3, 
                           learning_rate=0.1, 
                           n_estimators=100, 
