@@ -61,7 +61,7 @@ def neighbourhood_clear_rule(X_train, y_train):
     return X_res, y_res
     
 def nearest_neighbours(X_train, y_train):
-    cnn = CondensedNekeparestNeighbour(random_state=42)
+    cnn = CondensedNearestNeighbour(random_state=42)
     X_res, y_res = cnn.fit_resample(X_train, y_train)
     return X_res, y_res
 
