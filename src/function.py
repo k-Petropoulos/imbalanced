@@ -237,5 +237,5 @@ def xgboost_model(X_train, y_train, X_test):
                           missing=None)
     
     model.fit(X_train, y_train)
-    y_pred = model.predict(X_test)
+    y_pred = model.predict(X_test.values)
     return y_pred
