@@ -189,12 +189,21 @@ def adasyn_method(X_train, y_train, strategy='auto'):
     X_res, y_res = ADASYN(sampling_strategy= strategy, random_state = 1).fit_resample(X_train, y_train)
     return X_res, y_res
 
+############# Combined over- and under- sampling #############
 
-def tune_oversampling( df, numStrategies=6 ):
+def smote_enn(X_train, y_train, strategy='auto'):
+    X_res, y_res = SMOTEENN(sampling_strategy = strategy, random_state = 1).fit_resample(X, y)
+    return X_res, y_res
+
+############# fine tuning #############
+
+def tune_sampling( df, methods, numStrategies=6 ):
     '''
         Split the data, then calculate how many different factors will
         be used, including original data and equal data in both classes.
     '''
+    # Handle if not list
+    if type(methods) is not list: methods = [ methods ]
     
     # Split data
     X_train, X_test, y_train, y_test = getdataset(df)
@@ -207,8 +216,7 @@ def tune_oversampling( df, numStrategies=6 ):
     
     
     # iterate over methods/ models and plot avg precision
-    methods = [smote_simple, smote_borderline, adasyn_method]
-    models = [random_forest, xgboost_model, elasticNet]
+    models = [random_forest]# , xgboost_model, elasticNet]
     for method in methods:
         for model in models:
             avg = []
@@ -216,14 +224,14 @@ def tune_oversampling( df, numStrategies=6 ):
                 X_res, y_res = method( X_train, y_train, strategy= ratio )
                 y_pred = model(X_res, y_res, X_test.values)
                 avg.append( average_precision_score(y_test, y_pred) )
-            plt.plot(strategy, avg)
+            f, ax = plt.subplots(figsize=(8,5))
+            ax.plot(strategy, avg)
             plt.xlabel('Over-sampling ratio')
             plt.ylabel('Average Precision')
             method_name = re.search(r"\s\w*", str(method))[0]
             model_name = re.search(r"\s\w*", str(model))[0]
             plt.title( method_name+":  "+model_name  ) # RegEx to capture just what's needed
-            plt.show()
-
+            yield ax
 
 
 
