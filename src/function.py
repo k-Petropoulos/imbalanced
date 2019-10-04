@@ -1,16 +1,19 @@
+import subprocess
+import sys
+
 # Function to install non-existing modules
 def install(package):
     subprocess.call([sys.executable, "-m", "pip", "install", package])
 
 # packages to check if available at host
-# pkgs = ['imblearn', 'xgboost']
-# for package in pkgs:
-#     try:
-#         import package
-#     except ImportError:
-#         install( package )
+pkgs = ['imblearn', 'xgboost']
+for package in pkgs:
+    try:
+        import package
+    except ImportError:
+        install( package )
 
-import subprocess
+
 import numpy as np
 import pandas as pd
 import os
@@ -175,6 +178,12 @@ def KMeansUnderSample( X_train, y_train , shrink_factor):
     cc = ClusterCentroids(random_state= 1, sampling_strategy= strategy, voting= 'soft', estimator= KMeans())
     return cc.fit_sample(X_train, y_train)
 
+############# Combined over- and under- sampling #############
+
+def smote_enn(X_train, y_train, strategy='auto'):
+    X_res, y_res = SMOTEENN(sampling_strategy = strategy, random_state = 1).fit_resample(X, y)
+    return X_res, y_res
+
 ############# Over sampling #############
 
 def smote_simple(X_train, y_train, strategy='auto'):
@@ -189,13 +198,6 @@ def adasyn_method(X_train, y_train, strategy='auto'):
     X_res, y_res = ADASYN(sampling_strategy= strategy, random_state = 1).fit_resample(X_train, y_train)
     return X_res, y_res
 
-############# Combined over- and under- sampling #############
-
-def smote_enn(X_train, y_train, strategy='auto'):
-    X_res, y_res = SMOTEENN(sampling_strategy = strategy, random_state = 1).fit_resample(X, y)
-    return X_res, y_res
-
-############# fine tuning #############
 
 def tune_sampling( df, methods, numStrategies=6 ):
     '''
@@ -216,22 +218,29 @@ def tune_sampling( df, methods, numStrategies=6 ):
     
     
     # iterate over methods/ models and plot avg precision
-    models = [random_forest]# , xgboost_model, elasticNet]
+    models = [random_forest, xgboost_model, elasticNet]
     for method in methods:
         for model in models:
+            ratios = []
             avg = []
-            for ratio in strategy: 
-                X_res, y_res = method( X_train, y_train, strategy= ratio )
-                y_pred = model(X_res, y_res, X_test.values)
-                avg.append( average_precision_score(y_test, y_pred) )
+            for ratio in strategy:
+                if (method == adasyn_method) and (ratio < 0.0047133): # limit value before throwing ValueError discovered
+                    continue
+                else:
+                    X_res, y_res = method( X_train, y_train, strategy= ratio )
+                    y_pred = model(X_res, y_res, X_test.values)
+                    avg.append( average_precision_score(y_test, y_pred) )
+                    ratios.append( ratio )
+                    
             f, ax = plt.subplots(figsize=(8,5))
-            ax.plot(strategy, avg)
+            ax.plot(ratios, avg)
             plt.xlabel('Over-sampling ratio')
             plt.ylabel('Average Precision')
             method_name = re.search(r"\s\w*", str(method))[0]
             model_name = re.search(r"\s\w*", str(model))[0]
             plt.title( method_name+":  "+model_name  ) # RegEx to capture just what's needed
             yield ax
+
 
 
 
