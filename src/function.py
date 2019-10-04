@@ -17,6 +17,7 @@ import os
 import sys
 import seaborn as sns
 import matplotlib.pyplot as plt
+import re
 
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
@@ -177,17 +178,15 @@ def KMeansUnderSample( X_train, y_train , shrink_factor):
 ############# Over sampling #############
 
 def smote_simple(X_train, y_train, strategy='auto'):
-    X_res, y_res = SMOTE(sampling_strategy= strategy, random_state= 42).fit_resample(X_train, y_train)
+    X_res, y_res = SMOTE(sampling_strategy= strategy, random_state = 1).fit_resample(X_train, y_train)
     return X_res, y_res
 
-def smote_borderline(X_train, y_train):
-    sm = BorderlineSMOTE(random_state=42)
-    X_res, y_res = sm.fit_resample(X_train, y_train)
+def smote_borderline(X_train, y_train, strategy='auto'):
+    X_res, y_res = BorderlineSMOTE(sampling_strategy= strategy, random_state = 1).fit_resample(X_train, y_train)
     return X_res, y_res
 
-def adasyn_method(X_train, y_train):
-    ada = ADASYN(random_state=42)
-    X_res, y_res = ada.fit_resample(X_train, y_train)
+def adasyn_method(X_train, y_train, strategy='auto'):
+    X_res, y_res = ADASYN(sampling_strategy= strategy, random_state = 1).fit_resample(X_train, y_train)
     return X_res, y_res
 
 
@@ -209,7 +208,7 @@ def tune_oversampling( df, numStrategies=6 ):
     
     # iterate over methods/ models and plot avg precision
     methods = [smote_simple, smote_borderline, adasyn_method]
-    models = [random_forest, xgboost_model]
+    models = [random_forest, xgboost_model, elasticNet]
     for method in methods:
         for model in models:
             avg = []
@@ -220,7 +219,9 @@ def tune_oversampling( df, numStrategies=6 ):
             plt.plot(strategy, avg)
             plt.xlabel('Over-sampling ratio')
             plt.ylabel('Average Precision')
-            plt.title(model)
+            method_name = re.search(r"\s\w*", str(method))[0]
+            model_name = re.search(r"\s\w*", str(model))[0]
+            plt.title( method_name+":  "+model_name  ) # RegEx to capture just what's needed
             plt.show()
 
 
@@ -287,5 +288,5 @@ def xgboost_model(X_train, y_train, X_test):
                           missing=None)
     
     model.fit(X_train, y_train)
-    y_pred = model.predict(X_test.values)
+    y_pred = model.predict(X_test)
     return y_pred
