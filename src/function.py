@@ -176,8 +176,8 @@ def KMeansUnderSample( X_train, y_train , shrink_factor):
 
 ############# Over sampling #############
 
-def smote_simple(X_train, y_train):
-    X_res, y_res = SMOTE().fit_resample(X_train, y_train)
+def smote_simple(X_train, y_train, strategy='auto'):
+    X_res, y_res = SMOTE(sampling_strategy= strategy, random_state= 42).fit_resample(X_train, y_train)
     return X_res, y_res
 
 def smote_borderline(X_train, y_train):
@@ -189,6 +189,42 @@ def adasyn_method(X_train, y_train):
     ada = ADASYN(random_state=42)
     X_res, y_res = ada.fit_resample(X_train, y_train)
     return X_res, y_res
+
+
+def tune_oversampling( df, numStrategies=6 ):
+    '''
+        Split the data, then calculate how many different factors will
+        be used, including original data and equal data in both classes.
+    '''
+    
+    # Split data
+    X_train, X_test, y_train, y_test = getdataset(df)
+    
+    # Shrink_factors
+    Nmin = y_train.value_counts()[1] # number of observations in minority class
+    Nmaj = y_train.value_counts()[0] # #number of observations in majorit class
+    factor = np.linspace(1.1, Nmaj/Nmin, numStrategies) # factors to expand minority class
+    strategy = (Nmin/Nmaj)*factor 
+    
+    
+    # iterate over methods/ models and plot avg precision
+    methods = [smote_simple, smote_borderline, adasyn_method]
+    models = [random_forest, xgboost_model]
+    for method in methods:
+        for model in models:
+            avg = []
+            for ratio in strategy: 
+                X_res, y_res = method( X_train, y_train, strategy= ratio )
+                y_pred = model(X_res, y_res, X_test.values)
+                avg.append( average_precision_score(y_test, y_pred) )
+            plt.plot(strategy, avg)
+            plt.xlabel('Over-sampling ratio')
+            plt.ylabel('Average Precision')
+            plt.title(model)
+            plt.show()
+
+
+
 
 ############# Prediction algorithm #############
 
