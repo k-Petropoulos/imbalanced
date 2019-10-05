@@ -35,6 +35,7 @@ from xgboost import XGBClassifier
 from imblearn.under_sampling import RandomUnderSampler, NeighbourhoodCleaningRule, CondensedNearestNeighbour, ClusterCentroids
 from inspect import signature
 from imblearn.over_sampling import SMOTE,BorderlineSMOTE, ADASYN
+from imblearn.combine import SMOTEENN, SMOTETomek 
 
 
 ############# Load Data set #############
@@ -196,7 +197,12 @@ def adasyn_method(X_train, y_train, strategy='auto'):
 ############# Combined over- and under- sampling #############
 
 def smote_enn(X_train, y_train, strategy='auto'):
-    X_res, y_res = SMOTEENN(sampling_strategy = strategy, random_state = 1).fit_resample(X, y)
+    X_res, y_res = SMOTEENN(sampling_strategy = strategy, random_state = 1).fit_resample(X_train, y_train)
+    return X_res, y_res
+    
+def smote_tomek(X_train, y_train, strategy='auto'):
+    smt = SMOTETomek(sampling_strategy = strategy, random_state = 1)
+    X_res, y_res = smt.fit_resample(X_train, y_train)    
     return X_res, y_res
 
 ############# Fine tune samples #############
