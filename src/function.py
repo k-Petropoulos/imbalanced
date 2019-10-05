@@ -144,45 +144,40 @@ def show_AUC(fpr, tpr, roc_auc):
 
 ############# Under sampling #############
 
-def random_under_sampling(X_train, y_train):
-    rus = RandomUnderSampler(return_indices=False,random_state=42)
-    X_res,y_res= rus.fit_resample(X_train, y_train)
+def random_under_sampling(X_train, y_train, strategy='auto'):
+    rus = RandomUnderSampler(return_indices=False, sampling_strategy= strategy, random_state= 1)
+    X_res,y_res = rus.fit_resample(X_train, y_train)
     return X_res,y_res
 
-def neighbourhood_clear_rule(X_train, y_train):
-    ncr = NeighbourhoodCleaningRule()
-    X_res, y_res = ncr.fit_resample(X_train, y_train)
+def neighbourhood_clear_rule(X_train, y_train, strategy='auto'):
+    # Cleaning algorithms do not accept ratio argument
+    X_res, y_res = NeighbourhoodCleaningRule(sampling_strategy= 'auto', random_state = 1).fit_resample(X_train, y_train)
     return X_res, y_res
     
-def nearest_neighbours(X_train, y_train):
-    cnn = CondensedNearestNeighbour(random_state=42)
-    X_res, y_res = cnn.fit_resample(X_train, y_train)
+def nearest_neighbours(X_train, y_train, strategy='auto'):
+    # Cleaning algorithms do not accept ratio argument
+    X_res, y_res = CondensedNearestNeighbour(sampling_strategy= 'auto', random_state = 1).fit_resample(X_train, y_train)
     return X_res, y_res
 
-def KMeansUnderSample( X_train, y_train , shrink_factor): 
+def KMeansUnderSample( X_train, y_train , strategy='auto'): 
     '''
         Creates new majority class by clustering the existing. 
         The class is shrunk according to the "shrink_factor" parameter.
         Under-sample only the majority class and substitute values 
         with the cluster centorids. Returns X, y after subsampling.
     '''
-    # check type to be able to use VALUE_COUNTS
-    if type(y_train) != pd.core.series.Series: 
-        y_train = pd.Series( y_train )
-    # minority class count
-    Nmin = y_train.value_counts()[1]
-    # majority class count (to be created)
-    NmajR = y_train.value_counts()[0]/ shrink_factor
-    strategy = Nmin/NmajR
-    
+#  #  #  Older #  #  #
+#     # check type to be able to use VALUE_COUNTS
+#     if type(y_train) != pd.core.series.Series: 
+#         y_train = pd.Series( y_train )
+#     # minority class count
+#     Nmin = y_train.value_counts()[1]
+#     # majority class count (to be created)
+#     NmajR = y_train.value_counts()[0]/ shrink_factor
+#     strategy = Nmin/NmajR
+#  #  #  #  #  #  #  #
     cc = ClusterCentroids(random_state= 1, sampling_strategy= strategy, voting= 'soft', estimator= KMeans())
     return cc.fit_sample(X_train, y_train)
-
-############# Combined over- and under- sampling #############
-
-def smote_enn(X_train, y_train, strategy='auto'):
-    X_res, y_res = SMOTEENN(sampling_strategy = strategy, random_state = 1).fit_resample(X, y)
-    return X_res, y_res
 
 ############# Over sampling #############
 
@@ -198,8 +193,15 @@ def adasyn_method(X_train, y_train, strategy='auto'):
     X_res, y_res = ADASYN(sampling_strategy= strategy, random_state = 1).fit_resample(X_train, y_train)
     return X_res, y_res
 
+############# Combined over- and under- sampling #############
 
-def tune_sampling( df, methods, numStrategies=6 ):
+def smote_enn(X_train, y_train, strategy='auto'):
+    X_res, y_res = SMOTEENN(sampling_strategy = strategy, random_state = 1).fit_resample(X, y)
+    return X_res, y_res
+
+############# Fine tune samples #############
+
+def plot_tune_sampling( df, methods, numStrategies=6 ):
     '''
         Split the data, then calculate how many different factors will
         be used, including original data and equal data in both classes.
@@ -241,6 +243,89 @@ def tune_sampling( df, methods, numStrategies=6 ):
             plt.title( method_name+":  "+model_name  ) # RegEx to capture just what's needed
             yield ax
 
+            
+            
+def df_tune_sampling( df, methods, numStrategies=6 ):
+    '''
+        Similar to the previous, this time instead of yielding a plot
+        a DataFrame is constructed with the optimal over/under-sampling size.
+    '''
+    # Handle if not list
+    if type(methods) is not list: methods = [ methods ]
+    
+    # Split data
+    X_train, X_test, y_train, y_test = getdataset(df)
+    
+    # Shrink_factors
+    Nmin = y_train.value_counts()[1] # number of observations in minority class
+    Nmaj = y_train.value_counts()[0] # #number of observations in majorit class
+    factor = np.linspace(1.1, Nmaj/Nmin, numStrategies) # factors to expand minority class
+    strategy = (Nmin/Nmaj)*factor 
+    
+    
+    # iterate over methods/ models and plot avg precision
+    models = [random_forest, xgboost_model, elasticNet]
+    rows = []
+    for method in methods:
+        for model in models:
+            ratios = []
+            avg = []
+            for ratio in strategy:
+                if (method == adasyn_method) and (ratio < 0.0047133): # limit value before throwing ValueError discovered
+                    continue
+                else:
+                    X_res, y_res = method( X_train, y_train, strategy= ratio )
+                    y_pred = model(X_res, y_res, X_test.values)
+                    avg.append( average_precision_score(y_test, y_pred) )
+                    ratios.append( ratio )
+            method_name = re.search(r"\s\w*", str(method))[0]
+            model_name = re.search(r"\s\w*", str(model))[0]
+            # Find the ratio that maximizes the assessment metric
+            t1 = {'method':method_name, 'model':model_name}
+            t2 = [{'ratio':ratios[maxInd], 'avg_prcs':maxVal} for maxInd, maxVal in enumerate( avg ) if maxVal == max(avg)]
+            rows.append( {**t1, **t2[0]} ) # concatenate in one dict
+    return pd.DataFrame( rows )
+
+
+def tune_OverSampling( X_train, y_train, X_test, y_test, methods, numStrategies=6 ):
+    '''
+        Similar to the previous, for arrays (already over-sampled)
+    '''
+    # Handle if not list
+    if type(methods) is not list: methods = [ methods ]
+    
+    if type(y_train) != pd.core.series.Series: # type check to be abe to us VALUE_COUNTS
+        y_train = pd.Series( y_train )
+    
+    # Shrink_factors
+    Nmin = y_train.value_counts()[1] # number of observations in minority class
+    Nmaj = y_train.value_counts()[0] # #number of observations in majorit class
+    factor = np.linspace(1.1, Nmaj/Nmin, numStrategies) # factors to expand minority class
+    strategy = (Nmin/Nmaj)*factor 
+    
+    
+    # iterate over methods/ models and plot avg precision
+    models = [xgboost_model]
+    rows = []
+    for method in methods:
+        for model in models:
+            ratios = []
+            avg = []
+            for ratio in strategy:
+                if (method == adasyn_method) and (ratio < 0.0047133): # limit value before throwing ValueError discovered
+                    continue
+                else:
+                    X_res, y_res = method( X_train, y_train, strategy= ratio )
+                    y_pred = model(X_res, y_res, X_test.values)
+                    avg.append( average_precision_score(y_test, y_pred) )
+                    ratios.append( ratio )
+            method_name = re.search(r"\s\w*", str(method))[0]
+            model_name = re.search(r"\s\w*", str(model))[0]
+            # Find the ratio that maximizes the assessment metric
+            t1 = {'method':method_name, 'model':model_name}
+            t2 = [{'ratio':ratios[maxInd], 'avg_prcs':maxVal} for maxInd, maxVal in enumerate( avg ) if maxVal == max(avg)]
+            rows.append( {**t1, **t2[0]} ) # concatenate in one dict
+    return pd.DataFrame( rows )
 
 
 
