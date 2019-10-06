@@ -28,7 +28,7 @@ from sklearn.metrics import roc_curve, auc, f1_score, matthews_corrcoef, average
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.cluster import KMeans
 from sklearn.svm import SVC
-from sklearn.model_selection import GridSearchCV
+from sklearn.model_selection import GridSearchCV, RandomizedSearchCV
 
 from xgboost import XGBClassifier
 
@@ -334,7 +334,6 @@ def tune_OverSampling( X_train, y_train, X_test, y_test, methods, numStrategies=
     return pd.DataFrame( rows )
 
 
-
 ############# Prediction algorithm #############
 
 def random_forest(X_train, y_train, X_test):
@@ -398,3 +397,84 @@ def xgboost_model(X_train, y_train, X_test):
     model.fit(X_train, y_train)
     y_pred = model.predict(X_test)
     return y_pred
+
+
+############# Algorithm Modifications #############
+
+def grid_search_dict_RF(n_estimators, max_features, max_depth, min_samples_split, min_samples_leaf, bootstrap):
+
+    # Function to generate a dictionary of the most impactful hyperparameters to be fed into the randomized grid search algorithm  
+    # for the Random Forest classifier
+
+    random_grid_RF={'n_estimators': n_estimators,
+                    'max_features': max_features,
+                    'max_depth': max_depth,
+                    'min_samples_split': min_samples_split,
+                    'min_samples_leaf': min_samples_leaf,
+                    'bootstrap': bootstrap
+                    }
+
+    return random_grid_RF
+
+
+def grid_search_dict_XGB(min_child_weight, gamma, subsample, colsample_bytree, max_depth):
+
+    # Function to generate a dictionary of the most impactful hyperparameters to be fed into the randomized grid search algorithm 
+    # for the XGBoost classifier
+
+    random_grid_XGB = {'min_child_weight': min_child_weight,
+                      'gamma': gamma,
+                      'subsample': subsample,
+                      'colsample_bytree': colsample_bytree,
+                      'max_depth': max_depth
+                      }
+
+    return random_grid_XGB
+
+
+def grid_search_random(X_res, y_res, method:str, random_grid, n_iter:int, cv:int):
+
+    # Function to perform a randomized hyperparameter grid search as a first guess for the grid of hyperparameter values 
+
+    if (method == "RF"):
+        clf = RandomForestClassifier()
+    elif (method == "XGB"):
+        clf = XGBClassifier()
+    else:
+        print("Error: specify either 'RF' for Random Forest or 'XGB' for XGBoost")
+    
+    clf_grid = RandomizedSearchCV(estimator = clf, 
+                                  param_distributions = random_grid,   
+                                  n_iter = n_iter,
+                                  cv = cv,
+                                  verbose = 2,
+                                  random_state = 7)
+
+    clf_grid.fit(X_res, y_res)
+    best_param = clf_grid.best_params_
+    print(best_param)
+
+    return best_param
+
+
+def grid_search_CV(X_res, y_res, X_test, method:str, random_grid, n_iter:int, cv:int):
+
+    # Function to perform a hyperparameter grid search
+
+    if (method == "RF"):
+        clf = RandomForestClassifier()
+    else:
+        clf = XGBClassifier()
+    
+    clf_grid_cv =  GridSearchCV(estimator = clf, 
+                                param_distributions = random_grid,   
+                                n_iter = n_iter,
+                                cv = cv,
+                                verbose = 2)
+
+    clf_grid_cv.fit(X_res, y_res)
+    best_param_cv = clf_grid_cv.best_params_
+    best_model = clf_grid_cv.best_estimator_
+    y_pred = best_model.predict(X_test)
+    
+    return best_model, y_pred
