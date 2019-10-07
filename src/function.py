@@ -401,7 +401,7 @@ def xgboost_model(X_train, y_train, X_test, scale_pos_weight):
 
 ############# Algorithm Modifications #############
 
-def grid_search_dict_RF(n_estimators, max_features, max_depth, min_samples_split, min_samples_leaf, class_weight, bootstrap):
+def grid_search_dict_RF(n_estimators, max_features, max_depth, min_samples_split, min_samples_leaf, class_weight):
 
     # Function to generate a dictionary of the most impactful hyperparameters to be fed into the randomized grid search algorithm  
     # for the Random Forest classifier
@@ -411,8 +411,7 @@ def grid_search_dict_RF(n_estimators, max_features, max_depth, min_samples_split
                     'max_depth': max_depth,
                     'min_samples_split': min_samples_split,
                     'min_samples_leaf': min_samples_leaf,
-                    'class_weight': class_weight,
-                    'bootstrap': bootstrap
+                    'class_weight': class_weight
                     }
 
     return random_grid_RF
@@ -434,7 +433,7 @@ def grid_search_dict_XGB(min_child_weight, gamma, subsample, colsample_bytree, m
     return random_grid_XGB
 
 
-def grid_search_random(X_res, y_res, method:str, random_grid, n_iter:int, cv:int):
+def grid_search_random(X_res, y_res, X_test, method:str, random_grid, n_iter:int, cv:int):
 
     # Function to perform a randomized hyperparameter grid search as a first guess for the grid of hyperparameter values 
 
@@ -454,9 +453,11 @@ def grid_search_random(X_res, y_res, method:str, random_grid, n_iter:int, cv:int
 
     clf_grid.fit(X_res, y_res)
     best_param = clf_grid.best_params_
+    best_model = clf_grid.best_estimator_
+    y_pred = best_model.predict(X_test)
     print(best_param)
 
-    return best_param
+    return best_param, y_pred
 
 
 def grid_search_CV(X_res, y_res, X_test, method:str, random_grid, n_iter:int, cv:int):
@@ -465,8 +466,10 @@ def grid_search_CV(X_res, y_res, X_test, method:str, random_grid, n_iter:int, cv
 
     if (method == "RF"):
         clf = RandomForestClassifier()
-    else:
+    elif (method == "XGB"):
         clf = XGBClassifier()
+    else:
+        print("Error: specify either 'RF' for Random Forest or 'XGB' for XGBoost")
     
     clf_grid_cv =  GridSearchCV(estimator = clf, 
                                 param_distributions = random_grid,   
@@ -476,7 +479,7 @@ def grid_search_CV(X_res, y_res, X_test, method:str, random_grid, n_iter:int, cv
 
     clf_grid_cv.fit(X_res, y_res)
     best_param_cv = clf_grid_cv.best_params_
-    best_model = clf_grid_cv.best_estimator_
-    y_pred = best_model.predict(X_test)
+    best_model_cv = clf_grid_cv.best_estimator_
+    y_pred = best_model_cv.predict(X_test)
     
-    return best_model, y_pred
+    return best_model_cv, y_pred
