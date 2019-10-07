@@ -196,11 +196,11 @@ def adasyn_method(X_train, y_train, strategy='auto'):
 
 ############# Combined over- and under- sampling #############
 
-def smote_enn(X_train, y_train, strategy='auto'):
+def smote_enn(X_train, y_train, strategy):
     X_res, y_res = SMOTEENN(sampling_strategy = strategy, random_state = 1).fit_resample(X_train, y_train)
     return X_res, y_res
     
-def smote_tomek(X_train, y_train, strategy='auto'):
+def smote_tomek(X_train, y_train, strategy):
     smt = SMOTETomek(sampling_strategy = strategy, random_state = 1)
     X_res, y_res = smt.fit_resample(X_train, y_train)    
     return X_res, y_res
@@ -336,7 +336,7 @@ def tune_OverSampling( X_train, y_train, X_test, y_test, methods, numStrategies=
 
 ############# Prediction algorithm #############
 
-def random_forest(X_train, y_train, X_test):
+def random_forest(X_train, y_train, X_test, class_weight):
     RF = RandomForestClassifier(n_estimators=100,
                         criterion='gini',
                             max_depth=4,
@@ -353,7 +353,7 @@ def random_forest(X_train, y_train, X_test):
                             random_state=None,
                             verbose=0,
                             warm_start=False,
-                            class_weight=None)
+                            class_weight= class_weight)
 
     RF.fit(X_train, y_train)
     y_pred = RF.predict(X_test)
@@ -369,7 +369,7 @@ def elasticNet(X_train, y_train, X_test):
     y_pred = elasticnet.predict((X_test))
     return y_pred  
 
-def xgboost_model(X_train, y_train, X_test):
+def xgboost_model(X_train, y_train, X_test, scale_pos_weight):
     model = XGBClassifier(max_depth=3, 
                           learning_rate=0.1, 
                           n_estimators=50, 
@@ -388,7 +388,7 @@ def xgboost_model(X_train, y_train, X_test):
                           colsample_bynode=1, 
                           reg_alpha=0, 
                           reg_lambda=1, 
-                          scale_pos_weight=1, 
+                          scale_pos_weight = scale_pos_weight, 
                           base_score=0.5, 
                           random_state=0, 
                           seed=None, 
@@ -401,7 +401,7 @@ def xgboost_model(X_train, y_train, X_test):
 
 ############# Algorithm Modifications #############
 
-def grid_search_dict_RF(n_estimators, max_features, max_depth, min_samples_split, min_samples_leaf, bootstrap):
+def grid_search_dict_RF(n_estimators, max_features, max_depth, min_samples_split, min_samples_leaf, class_weight, bootstrap):
 
     # Function to generate a dictionary of the most impactful hyperparameters to be fed into the randomized grid search algorithm  
     # for the Random Forest classifier
@@ -411,13 +411,14 @@ def grid_search_dict_RF(n_estimators, max_features, max_depth, min_samples_split
                     'max_depth': max_depth,
                     'min_samples_split': min_samples_split,
                     'min_samples_leaf': min_samples_leaf,
+                    'class_weight': class_weight,
                     'bootstrap': bootstrap
                     }
 
     return random_grid_RF
 
 
-def grid_search_dict_XGB(min_child_weight, gamma, subsample, colsample_bytree, max_depth):
+def grid_search_dict_XGB(min_child_weight, gamma, subsample, colsample_bytree, max_depth, scale_pos_weight):
 
     # Function to generate a dictionary of the most impactful hyperparameters to be fed into the randomized grid search algorithm 
     # for the XGBoost classifier
@@ -426,7 +427,8 @@ def grid_search_dict_XGB(min_child_weight, gamma, subsample, colsample_bytree, m
                       'gamma': gamma,
                       'subsample': subsample,
                       'colsample_bytree': colsample_bytree,
-                      'max_depth': max_depth
+                      'max_depth': max_depth,
+                      'scale_pos_weight': scale_pos_weight
                       }
 
     return random_grid_XGB
