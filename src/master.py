@@ -23,6 +23,8 @@ def master(df,method=None,shrink=None):
         X_train,y_train = function.smote_borderline(X_train, y_train)
     elif(method=='ADASYN'):
         X_train,y_train = function.adasyn_method(X_train, y_train)
+
+    #If no resampling
     else:
         pass
     
@@ -31,7 +33,7 @@ def master(df,method=None,shrink=None):
     print('RandomForest begin')
     y_pred_RF = function.random_forest(X_train, y_train, X_test)
     print('Xgboost begin')
-    y_pred_XgBoost = function.xgboost_model(X_train, y_train, X_test.values) # changed X_test-> X_test.values as it threw error
+    y_pred_XgBoost = function.xgboost_model(X_train, y_train, X_test) # changed X_test-> X_test.values as it threw error
 
     print('ElasticNet metrics')
     metrics_E = function.compute_metrics(y_test, y_pred_E)
