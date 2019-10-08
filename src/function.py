@@ -479,12 +479,7 @@ def grid_search_CV(X_res, y_res, X_test, method:str, random_grid, n_iter:int, cv
 
     clf_grid_cv.fit(X_res, y_res)
     best_param_cv = clf_grid_cv.best_params_
-<<<<<<< HEAD
-    best_model = clf_grid_cv.best_estimator_
-    y_pred = best_model.predict(X_test.values)
-=======
     best_model_cv = clf_grid_cv.best_estimator_
     y_pred = best_model_cv.predict(X_test)
->>>>>>> 1e9204df19f3992cb468d9fd14d208ca497c320a
     
     return best_model_cv, y_pred
