@@ -2,16 +2,16 @@ import subprocess
 import sys
 
 # Function to install non-existing modules
-def install(package):
-    subprocess.call([sys.executable, "-m", "pip", "install", package])
+# def install(package):
+#     subprocess.call([sys.executable, "-m", "pip", "install", package])
 
-# packages to check if available at host
-pkgs = ['imblearn', 'xgboost']
-for package in pkgs:
-    try:
-        import package
-    except ImportError:
-        install( package )
+# # packages to check if available at host
+# pkgs = ['imblearn', 'xgboost']
+# for package in pkgs:
+#     try:
+#         import package
+#     except ImportError:
+#         install( package )
 
 
 import numpy as np
@@ -270,7 +270,7 @@ def df_tune_sampling( df, methods, numStrategies=6 ):
     
     
     # iterate over methods/ models and plot avg precision
-    models = [random_forest, xgboost_model, elasticNet]
+    models = [random_forest, xgboost_model]
     rows = []
     for method in methods:
         for model in models:
@@ -336,7 +336,7 @@ def tune_OverSampling( X_train, y_train, X_test, y_test, methods, numStrategies=
 
 ############# Prediction algorithm #############
 
-def random_forest(X_train, y_train, X_test, class_weight):
+def random_forest(X_train, y_train, X_test, class_weights):
     RF = RandomForestClassifier(n_estimators=100,
                         criterion='gini',
                             max_depth=4,
@@ -353,7 +353,7 @@ def random_forest(X_train, y_train, X_test, class_weight):
                             random_state=None,
                             verbose=0,
                             warm_start=False,
-                            class_weight= class_weight)
+                            class_weight= class_weights)
 
     RF.fit(X_train, y_train)
     y_pred = RF.predict(X_test)
