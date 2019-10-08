@@ -2,16 +2,16 @@ import subprocess
 import sys
 
 # Function to install non-existing modules
-def install(package):
-    subprocess.call([sys.executable, "-m", "pip", "install", package])
+# def install(package):
+#     subprocess.call([sys.executable, "-m", "pip", "install", package])
 
-# packages to check if available at host
-pkgs = ['imblearn', 'xgboost']
-for package in pkgs:
-    try:
-        import package
-    except ImportError:
-        install( package )
+# # packages to check if available at host
+# pkgs = ['imblearn', 'xgboost']
+# for package in pkgs:
+#     try:
+#         import package
+#     except ImportError:
+#         install( package )
 
 
 import numpy as np
@@ -395,7 +395,7 @@ def xgboost_model(X_train, y_train, X_test):
                           missing=None)
     
     model.fit(X_train, y_train)
-    y_pred = model.predict(X_test)
+    y_pred = model.predict(X_test.values)
     return y_pred
 
 
@@ -475,6 +475,6 @@ def grid_search_CV(X_res, y_res, X_test, method:str, random_grid, n_iter:int, cv
     clf_grid_cv.fit(X_res, y_res)
     best_param_cv = clf_grid_cv.best_params_
     best_model = clf_grid_cv.best_estimator_
-    y_pred = best_model.predict(X_test)
+    y_pred = best_model.predict(X_test.values)
     
     return best_model, y_pred
