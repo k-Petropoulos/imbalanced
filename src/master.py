@@ -24,6 +24,12 @@ def master(df,method=None,shrink=None):
     elif(method=='ADASYN'):
         X_train,y_train = function.adasyn_method(X_train, y_train)
 
+    #Both methods
+    elif(method=='SMOTE_ENN'):
+        X_train,y_train = function.smote_enn(X_train, y_train, strategy=0.2)
+    elif(method=='SMOTE_Tomek'):
+        X_train,y_train = function.smote_tomek(X_train, y_train, strategy=0.2)
+
     #If no resampling
     else:
         pass
@@ -31,9 +37,9 @@ def master(df,method=None,shrink=None):
     print('ElasticNet begin')
     y_pred_E = function.elasticNet(X_train, y_train, X_test)
     print('RandomForest begin')
-    y_pred_RF = function.random_forest(X_train, y_train, X_test, class_weight=None)
+    y_pred_RF = function.random_forest(X_train, y_train, X_test, class_weights=None)
     print('Xgboost begin')
-    y_pred_XgBoost = function.xgboost_model(X_train, y_train, X_test, scale_pos_weight=1)
+    y_pred_XgBoost = function.xgboost_model(X_train, y_train, X_test.values, scale_pos_weight=1)
 
     print('ElasticNet metrics')
     metrics_E = function.compute_metrics(y_test, y_pred_E)

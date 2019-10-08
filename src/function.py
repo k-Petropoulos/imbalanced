@@ -270,7 +270,7 @@ def df_tune_sampling( df, methods, numStrategies=6 ):
     
     
     # iterate over methods/ models and plot avg precision
-    models = [random_forest, xgboost_model, elasticNet]
+    models = [random_forest, xgboost_model]
     rows = []
     for method in methods:
         for model in models:
@@ -336,7 +336,7 @@ def tune_OverSampling( X_train, y_train, X_test, y_test, methods, numStrategies=
 
 ############# Prediction algorithm #############
 
-def random_forest(X_train, y_train, X_test, class_weight):
+def random_forest(X_train, y_train, X_test, class_weights):
     RF = RandomForestClassifier(n_estimators=100,
                         criterion='gini',
                             max_depth=4,
@@ -353,7 +353,7 @@ def random_forest(X_train, y_train, X_test, class_weight):
                             random_state=None,
                             verbose=0,
                             warm_start=False,
-                            class_weight= class_weight)
+                            class_weight= class_weights)
 
     RF.fit(X_train, y_train)
     y_pred = RF.predict(X_test)
@@ -395,7 +395,7 @@ def xgboost_model(X_train, y_train, X_test, scale_pos_weight):
                           missing=None)
     
     model.fit(X_train, y_train)
-    y_pred = model.predict(X_test.values)
+    y_pred = model.predict(X_test)
     return y_pred
 
 
