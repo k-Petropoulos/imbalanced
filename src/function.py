@@ -431,7 +431,7 @@ def grid_search_dict_XGB(min_child_weight, gamma, subsample, colsample_bytree, m
                       }
 
     return random_grid_XGB
-
+ 
 
 def grid_search_random(X_res, y_res, X_test, method:str, random_grid, n_iter:int, cv:int):
 
@@ -447,6 +447,7 @@ def grid_search_random(X_res, y_res, X_test, method:str, random_grid, n_iter:int
     clf_grid = RandomizedSearchCV(estimator = clf, 
                                   param_distributions = random_grid,   
                                   n_iter = n_iter,
+                                  n_jobs= -1,
                                   cv = cv,
                                   verbose = 2,
                                   random_state = 7)
@@ -474,6 +475,7 @@ def grid_search_CV(X_res, y_res, X_test, method:str, random_grid, n_iter:int, cv
     clf_grid_cv =  GridSearchCV(estimator = clf, 
                                 param_distributions = random_grid,   
                                 n_iter = n_iter,
+                                n_jobs = -1,
                                 cv = cv,
                                 verbose = 2)
 
