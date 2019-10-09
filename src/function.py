@@ -251,7 +251,7 @@ def plot_tune_sampling( df, methods, numStrategies=6 ):
 
             
             
-def df_tune_sampling( df, methods, numStrategies=6 ):
+def df_tune_sampling( df, methods, numStrategies=10):
     '''
         Similar to the previous, this time instead of yielding a plot
         a DataFrame is constructed with the optimal over/under-sampling size.
@@ -336,7 +336,7 @@ def tune_OverSampling( X_train, y_train, X_test, y_test, methods, numStrategies=
 
 ############# Prediction algorithm #############
 
-def random_forest(X_train, y_train, X_test, class_weights):
+def random_forest(X_train, y_train, X_test):
     RF = RandomForestClassifier(n_estimators=100,
                         criterion='gini',
                             max_depth=4,
@@ -352,8 +352,7 @@ def random_forest(X_train, y_train, X_test, class_weights):
                             n_jobs=-1,
                             random_state=None,
                             verbose=0,
-                            warm_start=False,
-                            class_weight= class_weights)
+                            warm_start=False)
 
     RF.fit(X_train, y_train)
     y_pred = RF.predict(X_test)
@@ -369,7 +368,7 @@ def elasticNet(X_train, y_train, X_test):
     y_pred = elasticnet.predict((X_test))
     return y_pred  
 
-def xgboost_model(X_train, y_train, X_test, scale_pos_weight):
+def xgboost_model(X_train, y_train, X_test):
     model = XGBClassifier(max_depth=3, 
                           learning_rate=0.1, 
                           n_estimators=50, 
@@ -387,8 +386,7 @@ def xgboost_model(X_train, y_train, X_test, scale_pos_weight):
                           colsample_bylevel=1, 
                           colsample_bynode=1, 
                           reg_alpha=0, 
-                          reg_lambda=1, 
-                          scale_pos_weight = scale_pos_weight, 
+                          reg_lambda=1,
                           base_score=0.5, 
                           random_state=0, 
                           seed=None, 

@@ -37,9 +37,9 @@ def master(df,method=None,shrink=None):
     print('ElasticNet begin')
     y_pred_E = function.elasticNet(X_train, y_train, X_test)
     print('RandomForest begin')
-    y_pred_RF = function.random_forest(X_train, y_train, X_test, class_weights=None)
+    y_pred_RF = function.random_forest(X_train, y_train, X_test)
     print('Xgboost begin')
-    y_pred_XgBoost = function.xgboost_model(X_train, y_train, X_test.values, scale_pos_weight=1)
+    y_pred_XgBoost = function.xgboost_model(X_train, y_train, X_test.values)
 
     print('ElasticNet metrics')
     metrics_E = function.compute_metrics(y_test, y_pred_E)
